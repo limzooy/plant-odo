@@ -1,26 +1,24 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Nunito', 'Apple SD Gothic Neo', sans-serif;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 15% 20%, rgba(255,255,255,.15) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 75%, rgba(255,100,0,.18) 0%, transparent 45%),
+    linear-gradient(135deg, #FF3CAC 0%, #FF6B35 45%, #FFDA77 100%);
+  background-attachment: fixed;
+}
+
+@keyframes shimmer {
+  from { left: -100%; }
+  to   { left: 100%; }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg) scale(1); }
+  50%       { transform: rotate(4deg) scale(1.07); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
