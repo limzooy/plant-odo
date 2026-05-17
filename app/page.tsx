@@ -1,10 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase'
-import { fetchTodos, addTodo, toggleTodo, deleteTodo, fetchPlant, savePlant, fetchStickers, addSticker, updateStickerPosition, deleteSticker } from '@/lib/db'
+import * as db from '@/lib/local-db'
 import type { Todo, Plant, Sticker, PlantType } from '@/types'
 import { formatDate, formatTime } from '@/types'
 import PlantSelect from '@/components/PlantSelect'
@@ -15,85 +13,61 @@ import StickerPicker from '@/components/StickerPicker'
 
 const today = new Date()
 const todayKey = formatDate(today)
-const DAYS = ['일','월','화','수','목','금','토']
 
 export default function HomePage() {
-  const router = useRouter()
-  const [userId, setUserId] = useState<string | null>(null)
   const [todos, setTodos] = useState<Todo[]>([])
   const [plant, setPlant] = useState<Plant | null | undefined>(undefined)
   const [stickers, setStickers] = useState<Sticker[]>([])
   const [activeSticker, setActiveSticker] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
 
+  // localStorage는 클라이언트에서만 읽을 수 있으므로 mount 후 초기화
   useEffect(() => {
-    const sb = createClient()
-    sb.auth.getUser().then(({ data }) => {
-      if (!data.user) { router.push('/login'); return }
-      setUserId(data.user.id)
-    })
-  }, [router])
-
-  useEffect(() => {
-    if (!userId) return
-    Promise.all([
-      fetchTodos(userId, todayKey),
-      fetchPlant(userId, todayKey),
-      fetchStickers(userId, todayKey),
-    ]).then(([t, p, s]) => {
-      setTodos(t); setPlant(p); setStickers(s); setLoading(false)
-    })
-  }, [userId])
+    setTodos(db.getTodos(todayKey))
+    setPlant(db.getPlant(todayKey))
+    setStickers(db.getStickers(todayKey))
+  }, [])
 
   const pct = todos.length === 0 ? 0 : Math.round(todos.filter(t => t.done).length / todos.length * 100)
   const done = todos.filter(t => t.done).length
 
-  const handlePlantConfirm = async (type: PlantType) => {
-    if (!userId) return
-    await savePlant(userId, todayKey, type)
-    const p = await fetchPlant(userId, todayKey)
-    setPlant(p)
-  }
+  const handlePlantConfirm = useCallback((type: PlantType) => {
+    db.savePlant(todayKey, type)
+    setPlant(db.getPlant(todayKey))
+  }, [])
 
-  const handleAddTodo = useCallback(async (text: string) => {
-    if (!userId) return
-    const t = await addTodo(userId, todayKey, text)
-    if (t) setTodos(prev => [...prev, t])
-  }, [userId])
+  const handleAddTodo = useCallback((text: string) => {
+    const t = db.addTodo(todayKey, text)
+    setTodos(prev => [...prev, t])
+  }, [])
 
-  const handleToggle = useCallback(async (id: string, newDone: boolean) => {
+  const handleToggle = useCallback((id: string, newDone: boolean) => {
     const doneAt = newDone ? formatTime(new Date()) : null
-    await toggleTodo(id, newDone, doneAt)
+    db.toggleTodo(todayKey, id, newDone, doneAt)
     setTodos(prev => prev.map(t => t.id === id ? { ...t, done: newDone, done_at: doneAt } : t))
   }, [])
 
-  const handleDeleteTodo = useCallback(async (id: string) => {
-    await deleteTodo(id)
+  const handleDeleteTodo = useCallback((id: string) => {
+    db.deleteTodo(todayKey, id)
     setTodos(prev => prev.filter(t => t.id !== id))
   }, [])
 
   const handleAddSticker = useCallback(async (emoji: string, x: number, y: number): Promise<Sticker | null> => {
-    if (!userId) return null
-    const s = await addSticker(userId, todayKey, emoji, x, y)
-    if (s) setStickers(prev => [...prev, s])
+    const s = db.addSticker(todayKey, emoji, x, y)
+    setStickers(prev => [...prev, s])
     return s
-  }, [userId])
+  }, [])
 
   const handleUpdateSticker = useCallback((id: string, x: number, y: number) => {
-    updateStickerPosition(id, x, y)
+    db.updateStickerPos(todayKey, id, x, y)
   }, [])
 
   const handleDeleteSticker = useCallback((id: string) => {
-    deleteSticker(id)
+    db.deleteSticker(todayKey, id)
     setStickers(prev => prev.filter(s => s.id !== id))
   }, [])
 
-  const handleLogout = async () => {
-    await createClient().auth.signOut()
-    router.push('/login')
-  }
-
-  if (loading || plant === undefined) {
+  // 초기 로딩 (undefined = 아직 로컬스토리지 안 읽은 상태)
+  if (plant === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-5xl animate-bounce">🌱</div>
@@ -101,10 +75,11 @@ export default function HomePage() {
     )
   }
 
+  // 오늘 화분 미선택
   if (!plant) {
     return (
       <div className="p-4">
-        <TopBar onLogout={handleLogout} activeTab="today" />
+        <TopBar activeTab="today" />
         <PlantSelect onConfirm={handlePlantConfirm} />
       </div>
     )
@@ -112,7 +87,7 @@ export default function HomePage() {
 
   return (
     <div className="p-4">
-      <TopBar onLogout={handleLogout} activeTab="today" />
+      <TopBar activeTab="today" />
       <div className="max-w-[1120px] mx-auto">
         <PlantProgress pct={pct} plantType={plant.type} done={done} total={todos.length} />
         <div className="flex gap-5 items-start flex-col-reverse md:flex-row">
@@ -139,25 +114,25 @@ export default function HomePage() {
   )
 }
 
-function TopBar({ onLogout, activeTab }: { onLogout: () => void; activeTab: 'today' | 'monthly' }) {
+function TopBar({ activeTab }: { activeTab: 'today' | 'monthly' }) {
   const d = new Date()
+  const DAYS = ['일','월','화','수','목','금','토']
   return (
     <div className="flex justify-between items-center max-w-[1120px] mx-auto mb-5">
       <div className="flex bg-white/18 backdrop-blur-md rounded-full p-1 gap-0.5">
         <Link href="/">
-          <button className={`px-6 py-2 rounded-full text-sm font-black transition-all border-none cursor-pointer ${activeTab === 'today' ? 'bg-white text-[#FF3CAC] shadow-[0_3px_14px_rgba(0,0,0,0.18)]' : 'bg-transparent text-white/75'}`}>🌱 오늘</button>
+          <button className={`px-6 py-2 rounded-full text-sm font-black transition-all border-none cursor-pointer ${activeTab === 'today' ? 'bg-white text-[#FF3CAC] shadow-[0_3px_14px_rgba(0,0,0,0.18)]' : 'bg-transparent text-white/75'}`}>
+            🌱 오늘
+          </button>
         </Link>
         <Link href="/monthly">
-          <button className={`px-6 py-2 rounded-full text-sm font-black transition-all border-none cursor-pointer ${activeTab === 'monthly' ? 'bg-white text-[#FF3CAC] shadow-[0_3px_14px_rgba(0,0,0,0.18)]' : 'bg-transparent text-white/75'}`}>📅 월별</button>
+          <button className={`px-6 py-2 rounded-full text-sm font-black transition-all border-none cursor-pointer ${activeTab === 'monthly' ? 'bg-white text-[#FF3CAC] shadow-[0_3px_14px_rgba(0,0,0,0.18)]' : 'bg-transparent text-white/75'}`}>
+            📅 월별
+          </button>
         </Link>
       </div>
-      <div className="flex items-center gap-3">
-        <div className="bg-white/92 rounded-[20px] px-5 py-2 text-[13px] font-black text-[#555] shadow-[0_4px_14px_rgba(0,0,0,0.15)]">
-          {d.getMonth()+1}월 {d.getDate()}일 {['일','월','화','수','목','금','토'][d.getDay()]}요일
-        </div>
-        <button onClick={onLogout} className="bg-white/20 text-white border-none rounded-full px-4 py-2 text-xs font-black cursor-pointer hover:bg-white/30 transition-colors">
-          로그아웃
-        </button>
+      <div className="bg-white/92 rounded-[20px] px-5 py-2 text-[13px] font-black text-[#555] shadow-[0_4px_14px_rgba(0,0,0,0.15)]">
+        {d.getMonth()+1}월 {d.getDate()}일 {DAYS[d.getDay()]}요일
       </div>
     </div>
   )

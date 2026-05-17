@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { PLANT_DATA, getStageIndex, formatDate } from '@/types'
 import type { PlantType } from '@/types'
-import { fetchMonthlyData } from '@/lib/db'
+import { getMonthlyData } from '@/lib/local-db'
 
 interface DayData {
   pct: number
@@ -11,7 +11,7 @@ interface DayData {
 }
 
 interface Props {
-  userId: string
+  userId?: string
 }
 
 const DAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -36,29 +36,26 @@ export default function MonthlyCalendar({ userId }: Props) {
 
   useEffect(() => {
     setLoading(true)
-    fetchMonthlyData(userId, monthStr).then(({ todos, plants }) => {
-      const map: Record<string, DayData> = {}
+    const { todos, plants } = getMonthlyData(monthStr)
+    const map: Record<string, DayData> = {}
 
-      // Build pct map per day
-      const todoCounts: Record<string, { total: number; done: number }> = {}
-      todos.forEach(t => {
-        if (!todoCounts[t.date]) todoCounts[t.date] = { total: 0, done: 0 }
-        todoCounts[t.date].total++
-        if (t.done) todoCounts[t.date].done++
-      })
-
-      plants.forEach(p => {
-        const { total = 0, done = 0 } = todoCounts[p.date] ?? {}
-        map[p.date] = {
-          pct: total > 0 ? Math.round((done / total) * 100) : 0,
-          plantType: p.type as PlantType,
-        }
-      })
-
-      setDayMap(map)
-      setLoading(false)
+    const todoCounts: Record<string, { total: number; done: number }> = {}
+    todos.forEach(t => {
+      if (!todoCounts[t.date]) todoCounts[t.date] = { total: 0, done: 0 }
+      todoCounts[t.date].total++
+      if (t.done) todoCounts[t.date].done++
     })
-  }, [userId, monthStr])
+    plants.forEach(p => {
+      const { total = 0, done = 0 } = todoCounts[p.date] ?? {}
+      map[p.date] = {
+        pct: total > 0 ? Math.round((done / total) * 100) : 0,
+        plantType: p.type as PlantType,
+      }
+    })
+
+    setDayMap(map)
+    setLoading(false)
+  }, [monthStr])
 
   const changeMonth = (delta: number) => {
     setView(v => {
