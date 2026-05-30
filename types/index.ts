@@ -1,4 +1,42 @@
-export type PlantType = 'cactus' | 'sunflower' | 'rose' | 'tulip' | 'cherry' | 'clover'
+export type PlantType = string
+
+export interface ProjectTodo {
+  id: string
+  text: string
+  done: boolean
+  dueDate: string
+  done_at?: string | null
+  created_at: string
+}
+
+export interface SubProject {
+  id: string
+  name: string
+  startDate?: string
+  endDate?: string
+  todos: ProjectTodo[]
+}
+
+export interface Project {
+  id: string
+  name: string
+  startDate: string
+  endDate: string
+  teamSize: number
+  color: string
+  subProjects: SubProject[]
+  todos: ProjectTodo[]
+  created_at: string
+}
+
+export const PROJECT_COLORS = [
+  '#E07070', '#5BBFB5', '#5AACE0', '#72C48A', '#E8BE55',
+  '#C488C8', '#6ABFB0', '#D4A840', '#9870C0', '#6AAED4',
+]
+
+export function randomProjectColor(): string {
+  return PROJECT_COLORS[Math.floor(Math.random() * PROJECT_COLORS.length)]
+}
 
 export interface PlantInfo {
   name: string
@@ -21,6 +59,7 @@ export interface Plant {
   user_id: string
   date: string
   type: PlantType
+  imageUrl?: string
 }
 
 export interface Sticker {
@@ -30,9 +69,10 @@ export interface Sticker {
   emoji: string
   x: number
   y: number
+  imageUrl?: string
 }
 
-export const PLANT_DATA: Record<PlantType, PlantInfo> = {
+export const PLANT_DATA: Record<string, PlantInfo> = {
   cactus:    { name: '선인장',   stages: ['🪴','🌱','🌵','🌵','🌵','🌵✨'], sizes: [30,34,40,48,56,64] },
   sunflower: { name: '해바라기', stages: ['🪴','🌱','🌿','🌻','🌻','🌻✨'], sizes: [30,34,40,48,56,64] },
   rose:      { name: '장미',     stages: ['🪴','🌱','🌿','🌹','🌹','🌹✨'], sizes: [30,34,40,48,56,64] },
@@ -46,6 +86,10 @@ export const STICKERS = [
   '🍬','🧁','🌈','☀️','🌙','⚡','🔥','💎','🐱','🐶',
   '🐰','🦋','🌺','🍓','🎵',
 ]
+
+export function getPlantInfo(type: PlantType): PlantInfo {
+  return PLANT_DATA[type] ?? { name: type, stages: ['🪴','🌱','🌿','🌿','🌿','🌿✨'], sizes: [30,34,40,48,56,64] }
+}
 
 export function getStageIndex(pct: number): number {
   if (pct === 0) return 0

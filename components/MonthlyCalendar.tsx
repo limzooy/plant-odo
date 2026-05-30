@@ -1,7 +1,7 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
-import { PLANT_DATA, getStageIndex, formatDate } from '@/types'
+import { getPlantInfo, getStageIndex, formatDate } from '@/types'
 import type { PlantType } from '@/types'
 import { getMonthlyData } from '@/lib/local-db'
 
@@ -81,7 +81,7 @@ export default function MonthlyCalendar({ userId }: Props) {
           >‹</button>
           <h2 className="text-xl font-black text-[#2d2d2d]">
             {view.year}년 {monthNames[view.month]}
-            {loading && <span className="text-[12px] text-[#ccc] ml-2">로딩중...</span>}
+            {loading && <span className="text-[15px] text-[#ccc] ml-2">로딩중...</span>}
           </h2>
           <button
             onClick={() => changeMonth(1)}
@@ -92,7 +92,7 @@ export default function MonthlyCalendar({ userId }: Props) {
         {/* Day headers */}
         <div className="grid grid-cols-7 gap-1 mb-1.5">
           {DAYS.map((d, i) => (
-            <div key={d} className={`text-center text-[11px] font-black py-1 ${i === 0 ? 'text-[#f87171]' : i === 6 ? 'text-[#60a5fa]' : 'text-[#bbb]'}`}>
+            <div key={d} className={`text-center text-[14px] font-black py-1 ${i === 0 ? 'text-[#f87171]' : i === 6 ? 'text-[#60a5fa]' : 'text-[#bbb]'}`}>
               {d}
             </div>
           ))}
@@ -110,7 +110,7 @@ export default function MonthlyCalendar({ userId }: Props) {
             const isToday = key === todayKey
             const levelClass = getLevelClass(data?.pct ?? 0, !!data)
             const plantEmoji = data?.plantType
-              ? PLANT_DATA[data.plantType].stages[getStageIndex(data.pct)]
+              ? getPlantInfo(data.plantType).stages[getStageIndex(data.pct)]
               : ''
             const isDark = data && (data.pct > 50)
 
@@ -120,7 +120,7 @@ export default function MonthlyCalendar({ userId }: Props) {
                 className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-0.5 p-1 transition-transform hover:scale-105 ${levelClass} ${isToday ? 'ring-[2.5px] ring-[#FF3CAC]' : ''}`}
               >
                 <span className="text-base leading-none">{plantEmoji}</span>
-                <span className={`text-[10px] font-black ${isDark ? 'text-white/85' : 'text-[#666]'}`}>{day}</span>
+                <span className={`text-[13px] font-black ${isDark ? 'text-white/85' : 'text-[#666]'}`}>{day}</span>
                 {data && data.pct > 0 && (
                   <span className={`text-[8px] font-bold ${isDark ? 'text-white/70' : 'text-[#aaa]'}`}>{data.pct}%</span>
                 )}
@@ -138,7 +138,7 @@ export default function MonthlyCalendar({ userId }: Props) {
             { bg: 'bg-[#22c55e]', label: '51~99%' },
             { bg: 'bg-[#fbbf24]', label: '100% 🌟' },
           ].map(({ bg, label }) => (
-            <div key={label} className="flex items-center gap-1.5 text-[11px] text-[#999] font-bold">
+            <div key={label} className="flex items-center gap-1.5 text-[14px] text-[#999] font-bold">
               <div className={`w-4 h-4 rounded-[5px] ${bg}`} />
               {label}
             </div>

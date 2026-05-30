@@ -1,13 +1,55 @@
 @import "tailwindcss";
 
+:root {
+  --paper:      #FFFDF0;
+  --ink:        #2C1810;
+  --accent:     #C84B31;
+  --muted:      #8A6C50;
+  --gold:       #C49A1A;
+  --spine:      #A0856A;
+  --spine-ring: #6B4C30;
+  --spine-hole: #FFFDF0;
+  --nav-bg:     #2C1810;
+  --nav-muted:  #D4C4A0;
+  --shadow:     #2C1810;
+  --page-bg:    #E8D5B0;
+  --page-pattern:
+    repeating-linear-gradient( 45deg, transparent, transparent 5px, rgba(0,0,0,0.025) 5px, rgba(0,0,0,0.025) 10px),
+    repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(0,0,0,0.025) 5px, rgba(0,0,0,0.025) 10px);
+}
+
 body {
+  font-size: 20px;
   font-family: 'Nunito', 'Apple SD Gothic Neo', sans-serif;
   min-height: 100vh;
-  background:
-    radial-gradient(ellipse at 15% 20%, rgba(255,255,255,.15) 0%, transparent 45%),
-    radial-gradient(ellipse at 85% 75%, rgba(255,100,0,.18) 0%, transparent 45%),
-    linear-gradient(135deg, #FF3CAC 0%, #FF6B35 45%, #FFDA77 100%);
+  background-color: var(--page-bg);
+  background-image: var(--page-pattern);
   background-attachment: fixed;
+  transition: background-color 0.3s ease;
+}
+
+.todo-text-input::placeholder {
+  font-size: 13px;
+  font-weight: 400;
+  color: #9e8070;
+  opacity: 1;
+}
+
+.modal-input::placeholder {
+  font-size: 13px;
+  font-weight: 400;
+  color: #9e8070;
+  opacity: 1;
+}
+
+.modal-input[type="date"]::-webkit-datetime-edit,
+.modal-input[type="date"]::-webkit-datetime-edit-year-field,
+.modal-input[type="date"]::-webkit-datetime-edit-month-field,
+.modal-input[type="date"]::-webkit-datetime-edit-day-field,
+.modal-input[type="date"]::-webkit-datetime-edit-text {
+  font-size: 13px;
+  font-weight: 400;
+  color: #9e8070;
 }
 
 @keyframes shimmer {
@@ -21,4 +63,17 @@ body {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes bloom {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  70%  { transform: scale(1.15) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes pageFlipOut {
+  0%   { transform: perspective(1200px) rotateY(0deg) translateX(0); opacity: 1; }
+  100% { transform: perspective(1200px) rotateY(-18deg) translateX(-30px) scaleX(0.92); opacity: 0; }
+}
+@keyframes pageFlipIn {
+  0%   { transform: perspective(1200px) rotateY(18deg) translateX(30px) scaleX(0.92); opacity: 0; }
+  100% { transform: perspective(1200px) rotateY(0deg) translateX(0); opacity: 1; }
 }

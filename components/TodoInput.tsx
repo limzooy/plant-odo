@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef } from 'react'
 
@@ -18,8 +18,15 @@ export default function TodoInput({ onAdd }: Props) {
   }
 
   return (
-    <div className="bg-white/96 rounded-[20px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.14)]">
-      <h3 className="text-[11px] font-black text-[#bbb] mb-3 uppercase tracking-wider">✏️ 투두 추가</h3>
+    <div className="p-5" style={{
+      background: 'var(--paper)',
+      border: '2.5px solid #2C1810',
+      borderRadius: 12,
+      boxShadow: '5px 5px 0 #2C1810',
+    }}>
+      <h3 className="text-[18px] font-black mb-3 uppercase tracking-wider" style={{ color: '#8A7A6A' }}>
+        ✏️ 투두 추가
+      </h3>
       <textarea
         value={text}
         onChange={e => setText(e.target.value)}
@@ -33,11 +40,27 @@ export default function TodoInput({ onAdd }: Props) {
         }}
         placeholder={'할 일을 입력하고\nEnter 또는 버튼을 누르세요'}
         maxLength={120}
-        className="w-full border-2 border-[#f0f0f0] rounded-xl p-3 text-sm font-bold text-[#334155] outline-none resize-none h-[82px] bg-[#fbfbfb] transition-colors focus:border-[#FF3CAC] focus:bg-white"
+        className="w-full p-3 text-sm font-bold resize-none h-[82px] outline-none transition-colors"
+        style={{
+          background: '#F5EDD8',
+          border: '2px solid #8A7A6A',
+          borderRadius: 8,
+          color: 'var(--ink)',
+        }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)' }}
+        onBlur={e =>  { e.currentTarget.style.borderColor = '#8A7A6A' }}
       />
       <button
         onClick={handleAdd}
-        className="w-full bg-gradient-to-br from-[#f093fb] to-[#FF3CAC] text-white border-none rounded-xl py-3 text-sm font-black cursor-pointer mt-2.5 transition-all duration-200 shadow-[0_5px_16px_rgba(255,60,172,0.32)] hover:-translate-y-0.5 hover:shadow-[0_8px_22px_rgba(255,60,172,0.44)]"
+        className="w-full text-white border-none py-3 text-sm font-black cursor-pointer mt-2.5 transition-all duration-150"
+        style={{
+          background: 'var(--accent)',
+          borderRadius: 8,
+          border: '2.5px solid #2C1810',
+          boxShadow: '3px 3px 0 #2C1810',
+        }}
+        onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform='translate(2px,2px)'; el.style.boxShadow='1px 1px 0 #2C1810' }}
+        onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform=''; el.style.boxShadow='3px 3px 0 #2C1810' }}
       >
         + 추가하기
       </button>
